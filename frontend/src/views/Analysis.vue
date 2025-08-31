@@ -87,17 +87,7 @@
       </div>
     </div>
 
-    <!-- 收益趋势图 -->
-    <div class="card-gradient">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-medium text-gray-900">收益趋势</h3>
-        <div class="text-sm text-gray-500">
-          {{ selectedPeriod === '1d' ? '近1天' : selectedPeriod === '5d' ? '近5天' : selectedPeriod === '15d' ? '近15天' : '近30天' }}
-        </div>
-      </div>
-      <Chart :options="trendChartOptions" height="320px" />
-    </div>
-
+    
     <!-- 分组统计 -->
     <div v-if="analysisData" class="card-gradient">
       <h3 class="text-lg font-medium text-gray-900 mb-4">分组统计</h3>

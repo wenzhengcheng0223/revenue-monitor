@@ -71,7 +71,9 @@
           <span class="text-sm text-gray-500">30天</span>
         </div>
       </div>
-      <Chart :options="trendChartOptions" height="300px" />
+      <div class="relative bg-white rounded-lg p-4 shadow-sm">
+        <Chart :options="trendChartOptions" height="350px" />
+      </div>
     </div>
 
     <!-- 持仓列表 -->

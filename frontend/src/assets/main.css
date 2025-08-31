@@ -2,6 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 全局样式重置 */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  height: 100%;
+  box-sizing: border-box;
+  scrollbar-gutter: stable;
+}
+
+/* 使用滚动条补偿方案，防止布局偏移 */
+html {
+  /* overflow-y: scroll; */
+}
+
+/* 确保导航栏内容容器始终居中，不受滚动条影响 */
+.navbar-content {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 80rem; /* 1280px, equivalent to max-w-7xl */
+  padding-left: 1rem; /* px-4 */
+  padding-right: 1rem; /* px-4 */
+}
+
+@media (min-width: 640px) {
+  .navbar-content {
+    padding-left: 1.5rem; /* sm:px-6 */
+    padding-right: 1.5rem; /* sm:px-6 */
+  }
+}
+
+@media (min-width: 1024px) {
+  .navbar-content {
+    padding-left: 2rem; /* lg:px-8 */
+    padding-right: 2rem; /* lg:px-8 */
+  }
+}
+
+/* 页面切换过渡效果 */
+.page-transition-enter-active,
+.page-transition-leave-active {
+  transition: all 0.3s ease;
+}
+
+.page-transition-enter-from {
+  opacity: 0;
+  transform: translateX(30px);
+}
+
+.page-transition-leave-to {
+  opacity: 0;
+  transform: translateX(-30px);
+}
+
+/* 淡入效果 */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* 页面加载动画 */
+.page-content {
+  animation: pageFadeIn 0.5s ease-out;
+}
+
+@keyframes pageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
 /* 自定义颜色变量 */
 :root {
   --profit-up: #ef4444;    /* 红色 - 涨 */
@@ -15,6 +99,26 @@
 @layer components {
   .btn {
     @apply px-4 py-2 rounded-md font-medium transition-all duration-200 transform hover:scale-105;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+  }
+  
+  .btn:active::before {
+    width: 300px;
+    height: 300px;
   }
   
   .btn-primary {
@@ -87,6 +191,39 @@
   /* 统计卡片 */
   .stat-card {
     @apply relative overflow-hidden rounded-xl bg-white p-6 shadow-lg hover:shadow-2xl transition-all duration-300;
+    animation: cardSlideIn 0.6s ease-out;
+    transform: translateY(20px);
+    opacity: 0;
+    animation-fill-mode: forwards;
+  }
+  
+  .stat-card:nth-child(1) { animation-delay: 0.1s; }
+  .stat-card:nth-child(2) { animation-delay: 0.2s; }
+  .stat-card:nth-child(3) { animation-delay: 0.3s; }
+  .stat-card:nth-child(4) { animation-delay: 0.4s; }
+  
+  @keyframes cardSlideIn {
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+  
+  .stat-card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(59,130,246,0.1) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+  }
+  
+  .stat-card:hover::after {
+    opacity: 1;
   }
   
   .stat-card::before {
@@ -109,21 +246,57 @@
   
   /* 导航链接 */
   .nav-link {
-    @apply px-4 py-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 font-medium;
+    @apply px-4 py-2 rounded-lg text-white hover:text-blue-100 hover:bg-white hover:bg-opacity-20 transition-all duration-200 font-medium;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+  
+  .nav-link:hover::before {
+    left: 100%;
   }
   
   .nav-link-active {
-    @apply text-blue-600 bg-blue-50 shadow-inner;
+    @apply text-white bg-white bg-opacity-20 shadow-inner;
+    animation: navLinkPulse 2s infinite;
+  }
+  
+  @keyframes navLinkPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.8; }
   }
   
   /* 表格样式 */
   .table-row-hover {
-    @apply hover:bg-gray-50 transition-colors duration-150;
+    @apply hover:bg-gray-50 transition-all duration-150;
+    transform: scale(1);
+  }
+  
+  .table-row-hover:hover {
+    transform: scale(1.01);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
   
   /* 徽章样式 */
   .badge {
     @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
+    animation: badgeBounce 0.5s ease-out;
+  }
+  
+  @keyframes badgeBounce {
+    0% { transform: scale(0); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
   }
   
   .badge-stock {
@@ -140,5 +313,43 @@
   
   .badge-down {
     @apply badge bg-green-100 text-green-800;
+  }
+  
+  /* 图表容器样式 */
+  .chart-container {
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+  
+  /* 数字变化动画 */
+  .number-change {
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+  
+  .number-change.positive {
+    animation: numberIncrease 0.5s ease-out;
+    color: var(--profit-up);
+  }
+  
+  .number-change.negative {
+    animation: numberDecrease 0.5s ease-out;
+    color: var(--profit-down);
+  }
+  
+  @keyframes numberIncrease {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+  }
+  
+  @keyframes numberDecrease {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.8); }
+    100% { transform: scale(1); }
   }
 }

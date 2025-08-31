@@ -1,8 +1,8 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+  <div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
     <!-- 顶部导航栏 -->
-    <header class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <header class="bg-gradient-to-r from-blue-600 to-purple-600 shadow-lg flex-shrink-0">
+      <div class="navbar-content">
         <div class="flex justify-between items-center h-16">
           <div class="flex items-center">
             <h1 class="text-xl font-bold text-white">收益监控系统</h1>
@@ -10,29 +10,29 @@
           <nav class="flex space-x-1">
             <router-link 
               to="/" 
-              class="nav-link text-white hover:text-blue-100"
-              :class="{ 'nav-link-active bg-white bg-opacity-20': $route.name === 'dashboard' }"
+              class="nav-link"
+              :class="{ 'nav-link-active': $route.name === 'dashboard' }"
             >
               监控面板
             </router-link>
             <router-link 
               to="/holdings" 
-              class="nav-link text-white hover:text-blue-100"
-              :class="{ 'nav-link-active bg-white bg-opacity-20': $route.name === 'holdings' }"
+              class="nav-link"
+              :class="{ 'nav-link-active': $route.name === 'holdings' }"
             >
               持仓管理
             </router-link>
             <router-link 
               to="/analysis" 
-              class="nav-link text-white hover:text-blue-100"
-              :class="{ 'nav-link-active bg-white bg-opacity-20': $route.name === 'analysis' }"
+              class="nav-link"
+              :class="{ 'nav-link-active': $route.name === 'analysis' }"
             >
               分析报告
             </router-link>
             <router-link 
               to="/revenue" 
-              class="nav-link text-white hover:text-blue-100"
-              :class="{ 'nav-link-active bg-white bg-opacity-20': $route.name === 'revenue' }"
+              class="nav-link"
+              :class="{ 'nav-link-active': $route.name === 'revenue' }"
             >
               收益监控
             </router-link>
@@ -85,9 +85,15 @@
     </header>
 
     <!-- 主要内容区 -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="navbar-content flex-grow py-8">
       <ErrorBoundary>
-        <router-view />
+        <router-view v-slot="{ Component }">
+          <transition name="page-transition" mode="out-in">
+            <div class="page-content" :key="$route.path">
+              <Component :is="Component" />
+            </div>
+          </transition>
+        </router-view>
       </ErrorBoundary>
     </main>
   </div>
