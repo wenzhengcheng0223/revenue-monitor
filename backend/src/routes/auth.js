@@ -14,7 +14,7 @@ router.post('/register', async (req, res) => {
     // 检查用户是否已存在
     const existingUser = await User.findOne({
       where: {
-        $or: [{ email }, { username }]
+        [require('sequelize').Op.or]: [{ email }, { username }]
       }
     })
 

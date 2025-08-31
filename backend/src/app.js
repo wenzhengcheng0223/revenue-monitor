@@ -8,6 +8,7 @@ const dotenv = require('dotenv')
 const authRoutes = require('./routes/auth')
 const holdingRoutes = require('./routes/holdings')
 const analysisRoutes = require('./routes/analysis')
+const stockDataRoutes = require('./routes/stockData')
 
 // 中间件
 const errorHandler = require('./middleware/errorHandler')
@@ -35,6 +36,7 @@ app.use('/uploads', express.static('uploads'))
 app.use('/api/auth', authRoutes)
 app.use('/api/holdings', holdingRoutes)
 app.use('/api/analysis', analysisRoutes)
+app.use('/api/stock-data', stockDataRoutes)
 
 // 健康检查
 app.get('/health', (req, res) => {

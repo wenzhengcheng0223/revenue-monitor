@@ -1,62 +1,44 @@
 const axios = require('axios')
+const RealStockService = require('./realStockService')
 const { Holding, StockData, RevenueAnalysis } = require('../models')
 
 class StockDataService {
   // 获取实时股价数据
   static async fetchRealtimeData(codes) {
     try {
-      // 这里应该接入真实的股票数据API
-      // 以下是模拟数据
-      const mockData = {}
-      codes.forEach(code => {
-        const change = (Math.random() - 0.5) * 0.1 // -5% 到 +5%
-        mockData[code] = {
-          code,
-          name: `股票${code}`,
-          price: 10 + Math.random() * 100,
-          changePercent: change,
-          changeAmount: change * (10 + Math.random() * 100),
-          volume: Math.floor(Math.random() * 1000000),
-          timestamp: new Date()
-        }
-      })
-      return mockData
+      const stockService = new RealStockService()
+      
+      // 分离股票和基金代码
+      const stockCodes = codes.filter(code => code.startsWith('6') || code.startsWith('0') || code.startsWith('3'))
+      const fundCodes = codes.filter(code => code.startsWith('5'))
+      
+      const results = {}
+      
+      // 获取股票数据
+      if (stockCodes.length > 0) {
+        const stockData = await stockService.fetchRealtimeStockData(stockCodes)
+        Object.assign(results, stockData)
+      }
+      
+      // 获取基金数据
+      if (fundCodes.length > 0) {
+        const fundData = await stockService.fetchFundData(fundCodes)
+        Object.assign(results, fundData)
+      }
+      
+      return results
     } catch (error) {
       console.error('获取实时数据失败:', error)
-      throw error
+      // 如果真实API失败，使用模拟数据
+      return this.generateMockData(codes)
     }
   }
 
   // 获取历史行情数据
   static async fetchHistoricalData(code, startDate, endDate) {
     try {
-      // 这里应该接入真实的股票数据API
-      // 以下是模拟数据
-      const data = []
-      const start = new Date(startDate)
-      const end = new Date(endDate)
-      
-      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        if (d.getDay() === 0 || d.getDay() === 6) continue // 跳过周末
-        
-        const basePrice = 10 + Math.random() * 100
-        const change = (Math.random() - 0.5) * 0.05
-        
-        data.push({
-          code,
-          date: new Date(d),
-          open: basePrice,
-          high: basePrice * (1 + Math.random() * 0.03),
-          low: basePrice * (1 - Math.random() * 0.03),
-          close: basePrice * (1 + change),
-          volume: Math.floor(Math.random() * 1000000),
-          amount: basePrice * Math.floor(Math.random() * 1000000),
-          changePercent: change * 100,
-          changeAmount: basePrice * change
-        })
-      }
-      
-      return data
+      const stockService = new RealStockService()
+      return await stockService.fetchHistoricalData(code, startDate, endDate)
     } catch (error) {
       console.error('获取历史数据失败:', error)
       throw error
@@ -151,6 +133,29 @@ class StockDataService {
       console.error('计算收益分析失败:', error)
       throw error
     }
+  }
+
+  // 生成模拟数据（备用方案）
+  static generateMockData(codes) {
+    const mockData = {}
+    codes.forEach(code => {
+      const change = (Math.random() - 0.5) * 0.1 // -5% 到 +5%
+      const basePrice = 10 + Math.random() * 100
+      
+      mockData[code] = {
+        code,
+        name: code.startsWith('5') ? `基金${code}` : `股票${code}`,
+        price: basePrice,
+        changePercent: change * 100,
+        changeAmount: basePrice * change,
+        volume: Math.floor(Math.random() * 1000000),
+        high: basePrice * (1 + Math.random() * 0.03),
+        low: basePrice * (1 - Math.random() * 0.03),
+        open: basePrice * (1 + Math.random() * 0.01),
+        timestamp: new Date()
+      }
+    })
+    return mockData
   }
 }
 

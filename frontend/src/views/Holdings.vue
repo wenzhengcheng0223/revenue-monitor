@@ -164,11 +164,34 @@
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">股票代码</label>
-              <input v-model="form.code" type="text" required class="input" />
+              <div class="relative">
+                <input 
+                  v-model="form.code" 
+                  type="text" 
+                  required 
+                  class="input pr-10"
+                  placeholder="输入股票代码自动获取名称"
+                />
+                <div v-if="isFetchingStockInfo" class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <svg class="animate-spin h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+              </div>
+              <p v-if="stockInfoError" class="mt-1 text-sm text-red-600">{{ stockInfoError }}</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">股票名称</label>
-              <input v-model="form.name" type="text" required class="input" />
+              <input 
+                v-model="form.name" 
+                type="text" 
+                required 
+                class="input"
+                :class="{ 'bg-gray-100': form.code && form.name }"
+                placeholder="输入股票代码后自动填充"
+              />
+              <p v-if="form.code && form.name" class="mt-1 text-sm text-green-600">✓ 已自动获取股票名称</p>
             </div>
             <div>
               <label class="block text-sm font-medium text-gray-700 mb-1">类型</label>
@@ -209,8 +232,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useHoldingStore } from '@/stores/holdings'
+import { stockApi } from '@/api'
 
 const holdingStore = useHoldingStore()
 
@@ -227,6 +251,68 @@ const form = ref({
   group: '',
   note: ''
 })
+
+// 自动获取股票名称
+const isFetchingStockInfo = ref(false)
+const stockInfoError = ref('')
+
+// 防抖函数
+const debounce = (func, wait) => {
+  let timeout
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout)
+      func(...args)
+    }
+    clearTimeout(timeout)
+    timeout = setTimeout(later, wait)
+  }
+}
+
+// 监听股票代码变化（防抖）
+watch(() => form.value.code, debounce(async (newCode) => {
+  if (newCode && newCode.length >= 4) {
+    await fetchStockInfo(newCode)
+  } else {
+    // 清空股票名称
+    form.value.name = ''
+    stockInfoError.value = ''
+  }
+}, 800))
+
+// 获取股票信息
+const fetchStockInfo = async (code) => {
+  if (!code || code.length < 4) return
+  
+  isFetchingStockInfo.value = true
+  stockInfoError.value = ''
+  
+  try {
+    const response = await stockApi.getStockInfo(code)
+    console.log('API响应:', response)
+    
+    if (response && response.success) {
+      const stockData = response.data
+      form.value.name = stockData.name || ''
+      
+      // 自动判断类型
+      if (code.startsWith('5') || code.startsWith('1')) {
+        form.value.type = 'fund'
+      } else {
+        form.value.type = 'stock'
+      }
+    } else {
+      stockInfoError.value = '未找到该股票/基金信息'
+      form.value.name = ''
+    }
+  } catch (error) {
+    console.error('获取股票信息失败:', error)
+    stockInfoError.value = '获取股票信息失败'
+    form.value.name = ''
+  } finally {
+    isFetchingStockInfo.value = false
+  }
+}
 
 const filteredHoldings = computed(() => {
   return holdingStore.holdings.filter(h => 
@@ -279,6 +365,7 @@ const closeModal = () => {
     group: '',
     note: ''
   }
+  stockInfoError.value = ''
 }
 
 const formatNumber = (num) => {
