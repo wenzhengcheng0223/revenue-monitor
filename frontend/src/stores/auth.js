@@ -13,6 +13,20 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    // 初始化认证状态
+    async initAuth() {
+      const token = localStorage.getItem('token')
+      if (token) {
+        this.token = token
+        try {
+          await this.getProfile()
+        } catch (error) {
+          console.warn('Token 可能已过期，清除认证状态:', error)
+          this.logout()
+        }
+      }
+    },
+
     async login(credentials) {
       try {
         const response = await authApi.login(credentials)
@@ -39,6 +53,7 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await authApi.getProfile()
         this.user = response.user
+        this.isAuthenticated = true
         return response
       } catch (error) {
         throw error

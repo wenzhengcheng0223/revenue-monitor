@@ -217,6 +217,11 @@ onMounted(() => {
     query: route.query,
     holdingsLength: holdingStore.holdings.length
   })
+  
+  // 获取历史数据
+  if (holding.value) {
+    fetchHistoricalData()
+  }
 })
 
 // 计算属性
@@ -327,25 +332,47 @@ const distributionChartOption = computed(() => ({
   }]
 }))
 
-// 模拟数据
-const priceHistory = ref([
-  { date: '2024-01-01', price: 10.50 },
-  { date: '2024-01-02', price: 10.80 },
-  { date: '2024-01-03', price: 11.20 },
-  { date: '2024-01-04', price: 10.90 },
-  { date: '2024-01-05', price: 11.50 }
-])
+// 真实历史数据
+const priceHistory = ref([])
+const historyRecords = ref([])
 
 const positiveValue = computed(() => Math.max(0, totalValue.value))
 const negativeValue = computed(() => Math.min(0, totalValue.value))
 
-const historyRecords = ref([
-  { date: '2024-01-05', open: 11.00, high: 11.60, low: 10.80, close: 11.50, change: 5.50 },
-  { date: '2024-01-04', open: 10.50, high: 11.00, low: 10.40, close: 10.90, change: -2.68 },
-  { date: '2024-01-03', open: 10.80, high: 11.30, low: 10.70, close: 11.20, change: 3.70 },
-  { date: '2024-01-02', open: 10.20, high: 10.90, low: 10.10, close: 10.80, change: 2.86 },
-  { date: '2024-01-01', open: 10.00, high: 10.60, low: 9.90, close: 10.50, change: 5.00 }
-])
+// 获取历史数据
+const fetchHistoricalData = async () => {
+  try {
+    const endDate = new Date()
+    const startDate = new Date()
+    startDate.setDate(endDate.getDate() - 30)
+    
+    const response = await stockDataApi.getHistoricalData(
+      holding.value.code,
+      startDate.toISOString().split('T')[0],
+      endDate.toISOString().split('T')[0]
+    )
+    
+    if (response.data && response.data.length > 0) {
+      // 处理价格历史数据
+      priceHistory.value = response.data.map(item => ({
+        date: new Date(item.date).toLocaleDateString('zh-CN'),
+        price: item.close
+      }))
+      
+      // 处理历史记录数据
+      historyRecords.value = response.data.map(item => ({
+        date: new Date(item.date).toLocaleDateString('zh-CN'),
+        open: item.open,
+        high: item.high,
+        low: item.low,
+        close: item.close,
+        change: item.changePercent
+      }))
+    }
+  } catch (error) {
+    console.error('获取历史数据失败:', error)
+  }
+}
 
 // 方法
 const goBack = () => {

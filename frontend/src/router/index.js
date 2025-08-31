@@ -51,6 +51,16 @@ router.beforeEach(async (to, from, next) => {
   try {
     const authStore = useAuthStore()
     
+    // 如果有 token 但没有用户信息，尝试获取用户信息
+    if (authStore.token && !authStore.user) {
+      try {
+        await authStore.getProfile()
+      } catch (error) {
+        console.warn('获取用户信息失败，可能 token 已过期:', error)
+        authStore.logout()
+      }
+    }
+    
     if (to.meta.requiresAuth && !authStore.isLoggedIn) {
       next('/login')
     } else if (to.meta.guest && authStore.isLoggedIn) {

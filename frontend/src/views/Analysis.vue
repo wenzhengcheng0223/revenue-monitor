@@ -203,26 +203,21 @@ const sortedHoldings = computed(() => {
 
 // 生成收益趋势图配置
 const trendChartOptions = computed(() => {
-  const days = selectedPeriod.value === '1d' ? 1 : 
-                selectedPeriod.value === '5d' ? 5 :
-                selectedPeriod.value === '15d' ? 15 : 30
+  const data = analysisData.value?.trendData || []
   
-  const data = []
-  let baseValue = holdingStore.totalCost
-  
-  for (let i = days; i >= 0; i--) {
-    const date = new Date()
-    date.setDate(date.getDate() - i)
-    
-    // 模拟收益波动
-    const randomFactor = 1 + (Math.random() - 0.5) * 0.1
-    const value = baseValue * randomFactor
-    
-    data.push({
-      date: date.toLocaleDateString('zh-CN'),
-      value: value,
-      profit: value - holdingStore.totalCost
-    })
+  // 如果没有历史数据，显示空数据
+  if (data.length === 0) {
+    return {
+      title: {
+        text: '暂无历史数据',
+        left: 'center',
+        top: 'center',
+        textStyle: {
+          color: '#999',
+          fontSize: 14
+        }
+      }
+    }
   }
   
   return {
